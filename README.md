@@ -10,21 +10,18 @@ Série prática de desafios em **Python Puro** (*Pure Python* — sem Pandas ou 
 
 ## 1. Objetivo
 
-Na preparação para atuar como Engenheiro de Machine Learning e Cientista de Dados, depender exclusivamente de bibliotecas prontas como Pandas sem dominar os fundamentos da linguagem cria lacunas severas de lógica, controle de exceções e performance.
+Na preparação para atuar como Engenheiro de Machine Learning e Cientista de Dados, depender exclusivamente de bibliotecas de alto nível como Pandas sem dominar os fundamentos da linguagem cria lacunas severas de lógica, controle de exceções e compreensão da complexidade algorítmica ($O(1)$ vs $O(N)$).
 
-Este repositório documenta a resolução prática de problemas reais de dados utilizando **estritamente os recursos nativos do Python**.
+Este repositório documenta a resolução prática de problemas reais de engenharia e análise de dados utilizando **estritamente os recursos nativos da biblioteca padrão do Python**:
 
-No **Desafio 01**, o objetivo é sanitizar dados cadastrais sujos de leads vindos de formulários de uma fintech, aplicando:
-- **Sanitização de Strings:** Tratamento de delimitadores (`;`), eliminação de espaços residuais e formatação padronizada de strings (`.strip()`, `.split()`, `.replace()`, `.title()`, `.upper()`, `.lower()`).
-- **Coerção de Tipos e Tratamento de Exceções:** Uso defensivo de `try...except ValueError` para blindar o fluxo contra valores não numéricos, textos corrompidos ou campos ausentes.
-- **Regras de Negócio e Filtragem:** Descarte de registros inelegíveis (menores de idade e renda não positiva).
-- **Estruturação em Dicionários:** Organização dos registros válidos em dicionários para alimentar futuros modelos ou esteiras de análise.
+- **Desafio 01 (Sanitizador de Leads de Fintech):** Tratamento defensivo de dados cadastrais textuais despadronizados vindos de formulários web, com coerção segura de tipos (`try...except ValueError`), filtros de elegibilidade e estruturação em dicionários.
+- **Desafio 02 (Reconciliação Financeira & Anti-Fraude):** Deduplicação de transações em tempo constante ($O(1)$) através de chaves compostas em tuplas imutáveis e `set`, monitoramento em tempo real de transações noturnas de alto risco e consolidação de faturamento regional com acumuladores nativos em dicionários.
 
 ---
 
 ## 2. Demonstração
 
-### Fluxo Lógico do Pipeline (`desafio_01.py`)
+### Pipeline Nível 1: Sanitizador de Leads (`desafio_01.py`)
 
 ```mermaid
 flowchart TD
@@ -40,8 +37,7 @@ flowchart TD
     H --> I
 ```
 
-### Execução no Terminal
-
+#### Saída no Terminal (`desafio_01.py`):
 ```text
 [{'id': 101, 'nome': 'Ana Silva', 'idade': 29, 'valor': 4500.0, 'estado': 'SP', 'situacao': 'aprovado'}, {'id': 104, 'nome': 'Daniel Alves', 'idade': 41, 'valor': 12000.0, 'estado': 'SP', 'situacao': 'aprovado'}, {'id': 108, 'nome': 'Roberto Carlos', 'idade': 65, 'valor': 25000.0, 'estado': 'SP', 'situacao': 'aprovado'}]
 Quantidades de leads recebidos: 8
@@ -51,19 +47,47 @@ Quantidade de leads descartados 5
 
 ---
 
+### Pipeline Nível 2: Reconciliação & Anti-Fraude (`desafio_02.py`)
+
+```mermaid
+flowchart TD
+    A["Logs de Transações Brutos (8 eventos)"] --> B["Iteração por registro"]
+    B --> C["Gera tupla imutável de unicidade (cliente, valor, hora)"]
+    C --> D{"Chave já presente no conjunto set?"}
+    D -- "Sim (Transação Duplicada)" --> E["Incrementa transacoes_deduplicadas"]
+    D -- "Não (Transação Nova/Única)" --> F["Registra chave no set e inclui na lista de transações únicas"]
+    F --> G{"Filtro de Risco: valor > 10.000 e (hora >= 22 ou hora < 6)"}
+    G -- "Sim (Suspeita Noturna)" --> H["Registra alerta (cliente, valor, cidade)"]
+    G -- "Não (Transação Regular)" --> I["Prossegue para faturamento"]
+    H --> I
+    I --> J["Acumula volume financeiro da cidade no dicionário somatorio"]
+    E --> K["Relatório de Reconciliação e Alertas no Terminal"]
+    J --> K
+```
+
+#### Saída no Terminal (`desafio_02.py`):
+```text
+Transaçoes processadas: 6 | Transaçoes deduplicadas: 2
+Lista de alertas de fraudes noturnos:
+ [('Ryan', 12500.0, 'Goiânia'), ('Beatriz', 15000.0, 'Goiânia')]
+Faturamento total consolidado por cidade:
+{'Goiânia': 27950.0, 'São Paulo': 300.0, 'Brasília': 8000.0, 'Anápolis': 22000.0}
+```
+
+---
+
 ## 3. Tecnologias Utilizadas
 
 - **Linguagem:** [Python 3.12](https://www.python.org/)
-- **Estruturas Nativas:**
-  - `list`: Armazenamento ordenado e acumulação dos leads brutos e processados.
-  - `dict`: Mapeamento chave-valor dos registros de clientes validados.
-- **Manipulação de Texto e Tipos:**
-  - Métodos nativos de string: `.split()`, `.strip()`, `.replace()`, `.title()`, `.upper()`, `.lower()`.
-  - Coerções primitivas: `int()`, `float()`.
-- **Controle de Fluxo e Resiliência:**
-  - Laços de iteração `for`.
-  - Tratamento defensivo de erros com bloco `try...except ValueError`.
-  - Controle de iteração com `continue`.
+- **Estruturas de Dados Nativas & Complexidade:**
+  - `set`: Busca e inserção de chaves em tempo constante médio ($O(1)$) via hashing, viabilizando deduplicação performática.
+  - `tuple`: Estrutura imutável e hashable utilizada como chave composta para unicidade `(cliente, valor, hora)`.
+  - `dict`: Mapeamento estruturado de entidades e acumulador de agregação por cidade.
+  - `list`: Coleções sequenciais ordenadas de leads e transações.
+- **Tratamento de Dados e Paradigma Procedimental:**
+  - Encapsulamento de regras em funções reutilizáveis (`def processar_reconciliacao(...)`).
+  - Métodos nativos de string (`strip`, `split`, `replace`, `title`, `upper`, `lower`).
+  - Coerções primitivas seguras com `try...except ValueError`.
 - **Versionamento:** [Git](https://git-scm.com/) e [GitHub](https://github.com/).
 
 ---
@@ -73,7 +97,8 @@ Quantidade de leads descartados 5
 ```text
 python-pure-data-challenges/
 ├── desafios/
-│   └── desafio_01.py        # Solução autoral do Desafio 01 (Sanitizador de Leads)
+│   ├── desafio_01.py        # Desafio 01: Sanitizador de Leads de Fintech
+│   └── desafio_02.py        # Desafio 02: Reconciliação Financeira & Anti-Fraude Noturno
 ├── .gitignore               # Configuração para ignorar arquivos temporários e caches
 ├── README.md                # Documentação técnica completa do repositório
 └── ROADMAP.md               # Guia com especificações e contexto dos próximos desafios
@@ -95,9 +120,14 @@ python-pure-data-challenges/
    cd python-pure-data-challenges
    ```
 
-2. **Executar o Desafio 01:**
+2. **Executar o Desafio 01 (Sanitizador de Leads):**
    ```bash
    python .\desafios\desafio_01.py
+   ```
+
+3. **Executar o Desafio 02 (Reconciliação Financeira):**
+   ```bash
+   python .\desafios\desafio_02.py
    ```
 
 *Nota: Não é necessária a instalação de nenhuma biblioteca externa (`pip`), pois todo o projeto foi construído utilizando apenas a biblioteca padrão do Python.*
@@ -106,7 +136,7 @@ python-pure-data-challenges/
 
 ## 6. Dataset
 
-O conjunto de dados do **Desafio 01** simula entradas textuais brutas provenientes de formulários web de solicitação de crédito sem validação de front-end:
+### Desafio 01: Lote de Leads Brutos (Strings)
 
 ```python
 leads_brutos = [
@@ -121,8 +151,6 @@ leads_brutos = [
 ]
 ```
 
-### Dicionário de Campos e Regras de Validação
-
 | Campo | Posição | Tipo Esperado | Regra de Sanitização / Negócio |
 | :--- | :---: | :---: | :--- |
 | `id` | 0 | `int` | Conversão para inteiro. Descartado se vazio ou inválido. |
@@ -134,18 +162,50 @@ leads_brutos = [
 
 ---
 
+### Desafio 02: Logs de Transações do Gateway (Dicionários)
+
+```python
+logs_transacoes = [
+    {"id": "tx1", "cliente": "Ryan", "valor": 12500.0, "hora": 23, "cidade": "Goiânia"},
+    {"id": "tx2", "cliente": "Lucas", "valor": 300.0, "hora": 14, "cidade": "São Paulo"},
+    {"id": "tx3", "cliente": "Ryan", "valor": 12500.0, "hora": 23, "cidade": "Goiânia"},  # Duplicada de tx1
+    {"id": "tx4", "cliente": "Carla", "valor": 8000.0, "hora": 9, "cidade": "Brasília"},
+    {"id": "tx5", "cliente": "Lucas", "valor": 300.0, "hora": 14, "cidade": "São Paulo"},  # Duplicada de tx2
+    {"id": "tx6", "cliente": "Beatriz", "valor": 15000.0, "hora": 2, "cidade": "Goiânia"},
+    {"id": "tx7", "cliente": "Ryan", "valor": 450.0, "hora": 15, "cidade": "Goiânia"},
+    {"id": "tx8", "cliente": "Marcos", "valor": 22000.0, "hora": 21, "cidade": "Anápolis"},
+]
+```
+
+| Chave | Tipo | Descrição | Regra Aplicada |
+| :--- | :---: | :--- | :--- |
+| `id` | `str` | Identificador do evento no log | Rastreamento do evento no gateway. |
+| `cliente` | `str` | Nome do cliente pagador | Parte da chave de unicidade. |
+| `valor` | `float` | Valor transacionado em R$ | Gatilho de risco se $> 10.000,00$ e base do faturamento regional. |
+| `hora` | `int` | Hora militar da transação (0-23) | Gatilho de risco noturno se $\ge 22$ ou $< 6$. |
+| `cidade` | `str` | Praça de origem da operação | Dimensão de agregação do somatório de faturamento. |
+
+---
+
 ## 7. Resultados
 
-Ao processar o lote de 8 leads recebidos, o script obteve:
+### Desafio 01 (Sanitização de Leads)
+- **Total recebido:** 8 registros.
+- **Aprovados:** 3 registros (37,5%) — Ana Silva, Daniel Alves e Roberto Carlos, em total conformidade cadastral e financeira.
+- **Descartados:** 5 registros (62,5%) com inconsistências tratadas defensivamente (idade textual, renda vazia, menor de idade, ID em branco e renda negativa).
 
-- **Total de leads recebidos:** 8 registros.
-- **Total de leads aprovados:** 3 registros (37,5%) — Ana Silva, Daniel Alves e Roberto Carlos, cujos dados satisfizeram todas as regras de tipagem e elegibilidade.
-- **Total de leads descartados:** 5 registros (62,5%):
-  - ID 102: Idade com valor textual por extenso (`"trinta e dois"`).
-  - ID 103: Campo de renda ausente/vazio.
-  - ID 105: Cliente menor de 18 anos (`17`).
-  - Sem ID: Registro sem identificador numérico (`" ; Marcos Castro..."`).
-  - ID 107: Valor de renda negativo (`R$ -500,00`).
+### Desafio 02 (Reconciliação Financeira & Anti-Fraude)
+- **Volume total analisado:** 8 transações.
+- **Deduplicação Inteligente:** 6 transações únicas mantidas e 2 transações duplicadas identificadas e descartadas (`tx3` de Ryan e `tx5` de Lucas).
+- **Detecção de Fraude Noturna:** 2 transações de alto valor identificadas na faixa de risco:
+  - `Ryan`: R$ 12.500,00 às 23h (Goiânia).
+  - `Beatriz`: R$ 15.000,00 às 02h (Goiânia).
+  - *Observação:* A transação do Marcos (R$ 22.000,00 em Anápolis) não gerou alerta por ocorrer às 21h (dentro do horário comercial padrão).
+- **Faturamento Consolidado por Praça:**
+  - **Goiânia:** R$ 27.950,00 (12.500 + 15.000 + 450)
+  - **Anápolis:** R$ 22.000,00
+  - **Brasília:** R$ 8.000,00
+  - **São Paulo:** R$ 300,00
 
 ---
 
@@ -153,8 +213,8 @@ Ao processar o lote de 8 leads recebidos, o script obteve:
 
 Roadmap de evolução prática na trilha pré-POO:
 
-- [x] **Desafio 01:** Sanitizador de Leads de Fintech (Concluído).
-- [ ] **Desafio 02:** Reconciliação Financeira com Deduplicação (`set`) e Detecção de Fraude Noturna.
+- [x] **Desafio 01:** Sanitizador Defensivo de Leads de Fintech (Concluído).
+- [x] **Desafio 02:** Reconciliação Financeira com Deduplicação (`set`) e Detecção de Fraude Noturna (Concluído).
 - [ ] **Desafio 03:** Cálculo manual de Métricas de Avaliação de Machine Learning (MAE e RMSE sem Scikit-Learn).
 - [ ] **Desafio 04:** Ingestão e Auditoria de Logs de Acesso com Detecção de Ataques de Força Bruta.
 - [ ] **Transição POO:** Refatoração modular orientada a objetos das soluções após o domínio da base procedimental.
