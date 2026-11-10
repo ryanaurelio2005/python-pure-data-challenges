@@ -10,12 +10,13 @@ Série prática de desafios em **Python Puro** (*Pure Python* — sem Pandas ou 
 
 ## 1. Objetivo
 
-Na preparação para atuar como Engenheiro de Machine Learning e Cientista de Dados, depender exclusivamente de bibliotecas de alto nível como Pandas sem dominar os fundamentos da linguagem cria lacunas severas de lógica, controle de exceções e compreensão da complexidade algorítmica ($O(1)$ vs $O(N)$).
+Na preparação para atuar como Engenheiro de Machine Learning e Cientista de Dados, depender exclusivamente de bibliotecas de alto nível como Pandas e Scikit-Learn sem dominar os fundamentos da linguagem cria lacunas severas de lógica, controle de exceções, compreensão da complexidade algorítmica ($O(1)$ vs $O(N)$) e intuição matemática sobre métricas de avaliação.
 
 Este repositório documenta a resolução prática de problemas reais de engenharia e análise de dados utilizando **estritamente os recursos nativos da biblioteca padrão do Python**:
 
 - **Desafio 01 (Sanitizador de Leads de Fintech):** Tratamento defensivo de dados cadastrais textuais despadronizados vindos de formulários web, com coerção segura de tipos (`try...except ValueError`), filtros de elegibilidade e estruturação em dicionários.
 - **Desafio 02 (Reconciliação Financeira & Anti-Fraude):** Deduplicação de transações em tempo constante ($O(1)$) através de chaves compostas em tuplas imutáveis e `set`, monitoramento em tempo real de transações noturnas de alto risco e consolidação de faturamento regional com acumuladores nativos em dicionários.
+- **Desafio 03 (Mini-Motor de Métricas de Machine Learning):** Alinhamento e higienização vetorial de predições corrompidas com `zip`, seguido do cálculo manual das principais métricas de regressão — **MAE** (Mean Absolute Error) e **RMSE** (Root Mean Squared Error) — além da identificação do pior caso residual sem auxílio de bibliotecas externas.
 
 ---
 
@@ -76,18 +77,51 @@ Faturamento total consolidado por cidade:
 
 ---
 
+### Pipeline Nível 3: Mini-Motor de Métricas de ML (`desafio_03.py`)
+
+```mermaid
+flowchart TD
+    A["Vetores Brutos: precos_reais e precos_previstos"] --> B["Iteração pareada com zip(reais, previstos)"]
+    B --> C{"Coerção Numérica para float (try / except)"}
+    C -- "Dado Corrompido / Texto / Nulo" --> D["Descarta o par com falha (continue)"]
+    C -- "Conversão Válida em Ambos" --> E["Acumula nas listas alinhadas (l1 e l2)"]
+    E --> F["calcular_mae: Calcula soma de abs(l1 - l2) e rastreia maior resíduo"]
+    E --> G["calcular_rmse: Calcula soma de (l1 - l2)^2 e extrai raiz quadrada"]
+    F --> H["Exibição do Relatório de Avaliação e Pior Caso no Terminal"]
+    G --> H
+```
+
+#### Saída no Terminal (`desafio_03.py`):
+```text
+LISTAS LIMPAS:
+[45000.0, 72000.0, 110000.0, 65000.0]
+[43500.0, 75000.0, 102000.0, 64500.0]
+Erro médio absoluto: R$ 3250.00
+RMSE R$ 4344.54
+Caso com maior erro individual: 
+Valor Real: 110000.0
+Vaslor Previsto: 102000.0
+Diferença: 8000.0
+```
+
+---
+
 ## 3. Tecnologias Utilizadas
 
 - **Linguagem:** [Python 3.12](https://www.python.org/)
 - **Estruturas de Dados Nativas & Complexidade:**
-  - `set`: Busca e inserção de chaves em tempo constante médio ($O(1)$) via hashing, viabilizando deduplicação performática.
+  - `zip()`: Pareamento simultâneo e sincronizado de vetores em memória sem indexação manual.
+  - `set`: Busca e inserção de chaves em tempo constante médio ($O(1)$) via hashing para deduplicação.
   - `tuple`: Estrutura imutável e hashable utilizada como chave composta para unicidade `(cliente, valor, hora)`.
   - `dict`: Mapeamento estruturado de entidades e acumulador de agregação por cidade.
-  - `list`: Coleções sequenciais ordenadas de leads e transações.
+  - `list`: Coleções sequenciais ordenadas de registros e valores preditivos.
+- **Fundamentos Matemáticos de Machine Learning:**
+  - **Função de Perda L1 / MAE:** $\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$
+  - **Função de Perda L2 / RMSE:** $\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$
+  - Tratamento de resíduos e sensibilidade a outliers em modelos preditivos.
 - **Tratamento de Dados e Paradigma Procedimental:**
-  - Encapsulamento de regras em funções reutilizáveis (`def processar_reconciliacao(...)`).
-  - Métodos nativos de string (`strip`, `split`, `replace`, `title`, `upper`, `lower`).
-  - Coerções primitivas seguras com `try...except ValueError`.
+  - Encapsulamento de regras em funções reutilizáveis (`alinhar_e_limpar_predicoes`, `calcular_mae`, `calcular_rmse`).
+  - Coerções primitivas seguras e blindagem com `try...except`.
 - **Versionamento:** [Git](https://git-scm.com/) e [GitHub](https://github.com/).
 
 ---
@@ -98,8 +132,10 @@ Faturamento total consolidado por cidade:
 python-pure-data-challenges/
 ├── desafios/
 │   ├── desafio_01.py        # Desafio 01: Sanitizador de Leads de Fintech
-│   └── desafio_02.py        # Desafio 02: Reconciliação Financeira & Anti-Fraude Noturno
+│   ├── desafio_02.py        # Desafio 02: Reconciliação Financeira & Anti-Fraude Noturno
+│   └── desafio_03.py        # Desafio 03: Mini-Motor de Métricas de Machine Learning (MAE e RMSE)
 ├── .gitignore               # Configuração para ignorar arquivos temporários e caches
+├── LICENSE                  # Licença MIT oficial do projeto
 ├── README.md                # Documentação técnica completa do repositório
 └── ROADMAP.md               # Guia com especificações e contexto dos próximos desafios
 ```
@@ -130,6 +166,11 @@ python-pure-data-challenges/
    python .\desafios\desafio_02.py
    ```
 
+4. **Executar o Desafio 03 (Métricas de Machine Learning):**
+   ```bash
+   python .\desafios\desafio_03.py
+   ```
+
 *Nota: Não é necessária a instalação de nenhuma biblioteca externa (`pip`), pois todo o projeto foi construído utilizando apenas a biblioteca padrão do Python.*
 
 ---
@@ -151,15 +192,6 @@ leads_brutos = [
 ]
 ```
 
-| Campo | Posição | Tipo Esperado | Regra de Sanitização / Negócio |
-| :--- | :---: | :---: | :--- |
-| `id` | 0 | `int` | Conversão para inteiro. Descartado se vazio ou inválido. |
-| `nome` | 1 | `str` | Remoção de espaços nas bordas e formatação em Title Case. |
-| `idade` | 2 | `int` | Conversão para inteiro. Descartado se menor que 18 ou valor textual. |
-| `renda` | 3 | `float` | Remoção de `"R$"`, pontuação monetária brasileira e descarte se $\le 0$. |
-| `estado` | 4 | `str` | Padronização em maiúsculas (UF). |
-| `situacao` | 5 | `str` | Padronização em minúsculas. |
-
 ---
 
 ### Desafio 02: Logs de Transações do Gateway (Dicionários)
@@ -177,13 +209,24 @@ logs_transacoes = [
 ]
 ```
 
-| Chave | Tipo | Descrição | Regra Aplicada |
-| :--- | :---: | :--- | :--- |
-| `id` | `str` | Identificador do evento no log | Rastreamento do evento no gateway. |
-| `cliente` | `str` | Nome do cliente pagador | Parte da chave de unicidade. |
-| `valor` | `float` | Valor transacionado em R$ | Gatilho de risco se $> 10.000,00$ e base do faturamento regional. |
-| `hora` | `int` | Hora militar da transação (0-23) | Gatilho de risco noturno se $\ge 22$ ou $< 6$. |
-| `cidade` | `str` | Praça de origem da operação | Dimensão de agregação do somatório de faturamento. |
+---
+
+### Desafio 03: Logs de Inferência de Regressão (Pares Real vs Previsto)
+
+```python
+precos_reais = [45000.0, 72000.0, "corrompido", 110000.0, 28000.0, 65000.0, ""]
+precos_previstos = [43500.0, 75000.0, 80000.0, 102000.0, "erro", 64500.0, 30000.0]
+```
+
+| Amostra | Preço Real | Preço Previsto | Status de Higienização | Motivo |
+| :---: | :---: | :---: | :---: | :--- |
+| 1 | `45000.0` | `43500.0` | Homologado | Ambos válidos (Erro: R$ 1.500,00) |
+| 2 | `72000.0` | `75000.0` | Homologado | Ambos válidos (Erro: R$ 3.000,00) |
+| 3 | `"corrompido"` | `80000.0` | Descartado | Falha de coerção no valor real |
+| 4 | `110000.0` | `102000.0` | Homologado | Ambos válidos (Pior Caso: R$ 8.000,00) |
+| 5 | `28000.0` | `"erro"` | Descartado | Falha de coerção na inferência do modelo |
+| 6 | `65000.0` | `64500.0` | Homologado | Ambos válidos (Erro: R$ 500,00) |
+| 7 | `""` | `30000.0` | Descartado | String vazia no valor real |
 
 ---
 
@@ -191,21 +234,25 @@ logs_transacoes = [
 
 ### Desafio 01 (Sanitização de Leads)
 - **Total recebido:** 8 registros.
-- **Aprovados:** 3 registros (37,5%) — Ana Silva, Daniel Alves e Roberto Carlos, em total conformidade cadastral e financeira.
-- **Descartados:** 5 registros (62,5%) com inconsistências tratadas defensivamente (idade textual, renda vazia, menor de idade, ID em branco e renda negativa).
+- **Aprovados:** 3 registros (37,5%) — Ana Silva, Daniel Alves e Roberto Carlos, em conformidade cadastral.
+- **Descartados:** 5 registros (62,5%) com inconsistências tratadas defensivamente.
 
 ### Desafio 02 (Reconciliação Financeira & Anti-Fraude)
 - **Volume total analisado:** 8 transações.
-- **Deduplicação Inteligente:** 6 transações únicas mantidas e 2 transações duplicadas identificadas e descartadas (`tx3` de Ryan e `tx5` de Lucas).
-- **Detecção de Fraude Noturna:** 2 transações de alto valor identificadas na faixa de risco:
-  - `Ryan`: R$ 12.500,00 às 23h (Goiânia).
-  - `Beatriz`: R$ 15.000,00 às 02h (Goiânia).
-  - *Observação:* A transação do Marcos (R$ 22.000,00 em Anápolis) não gerou alerta por ocorrer às 21h (dentro do horário comercial padrão).
-- **Faturamento Consolidado por Praça:**
-  - **Goiânia:** R$ 27.950,00 (12.500 + 15.000 + 450)
-  - **Anápolis:** R$ 22.000,00
-  - **Brasília:** R$ 8.000,00
-  - **São Paulo:** R$ 300,00
+- **Deduplicação Inteligente:** 6 transações únicas mantidas e 2 transações duplicadas descartadas (`tx3` de Ryan e `tx5` de Lucas).
+- **Detecção de Fraude Noturna:** 2 transações suspeitas emitiram alerta (Ryan: R$ 12.500,00 às 23h | Beatriz: R$ 15.000,00 às 02h).
+- **Faturamento Consolidado:** Goiânia (R$ 27.950,00), Anápolis (R$ 22.000,00), Brasília (R$ 8.000,00) e São Paulo (R$ 300,00).
+
+### Desafio 03 (Mini-Motor de Métricas de Machine Learning)
+- **Amostras brutas recebidas:** 7 pares (Real vs Previsto).
+- **Pares homologados após higienização vetorial:** 4 pares íntegros (57,1%).
+- **MAE (Erro Médio Absoluto):** **R$ 3.250,00**
+- **RMSE (Raiz do Erro Quadrático Médio):** **R$ 4.344,54**
+- **Pior Caso Residual (Outlier de Predição):**
+  - Valor Real: `R$ 110.000,00`
+  - Valor Previsto: `R$ 102.000,00`
+  - Diferença Absoluta: `R$ 8.000,00`
+- **Interpretação Analítica:** A diferença expressiva entre o RMSE (R$ 4.344,54) e o MAE (R$ 3.250,00) evidencia a propriedade do RMSE de penalizar desvios extremos de forma quadrática, métrica essencial para modelagem de risco e precificação de ativos.
 
 ---
 
@@ -215,7 +262,7 @@ Roadmap de evolução prática na trilha pré-POO:
 
 - [x] **Desafio 01:** Sanitizador Defensivo de Leads de Fintech (Concluído).
 - [x] **Desafio 02:** Reconciliação Financeira com Deduplicação (`set`) e Detecção de Fraude Noturna (Concluído).
-- [ ] **Desafio 03:** Cálculo manual de Métricas de Avaliação de Machine Learning (MAE e RMSE sem Scikit-Learn).
+- [x] **Desafio 03:** Cálculo manual de Métricas de Avaliação de Machine Learning — MAE e RMSE (Concluído).
 - [ ] **Desafio 04:** Ingestão e Auditoria de Logs de Acesso com Detecção de Ataques de Força Bruta.
 - [ ] **Transição POO:** Refatoração modular orientada a objetos das soluções após o domínio da base procedimental.
 
