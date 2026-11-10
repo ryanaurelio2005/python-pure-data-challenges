@@ -15,7 +15,7 @@ def alinhar_e_limpar_predicoes(reais, previstos):
             lista_limpa1.append(conver1)
             lista_limpa2.append(conver2)
 
-        except:
+        except (ValueError, TypeError):
 
             continue
 
@@ -52,7 +52,6 @@ def calcular_mae(y_real, y_pred):
 
 def calcular_rmse(y_real, y_pred):
 
-    erro_absoluto = []
     soma = 0
     for l1, l2 in zip(y_real, y_pred):
     
