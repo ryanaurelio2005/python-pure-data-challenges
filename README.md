@@ -27,15 +27,15 @@ Este repositório consolida a conclusão dos **4 desafios práticos de mercado**
 
 ```mermaid
 flowchart TD
-    A["Leads Brutos (Lista de Strings)"] --> B["Split por ';' e remoção de espaços com strip()"]
-    B --> C["Tratamento da Renda (.replace('R$', '').replace('.', '').replace(',', '.'))"]
-    C --> D{"Coerção Numérica (try / except)"}
-    D -- "ValueError (Ex: idade textual ou campo vazio)" --> E["Incrementa leads_descartados e pula (continue)"]
-    D -- "Conversão bem-sucedida (int e float)" --> F{"Filtro de Negócio (idade < 18 ou valor <= 0)"}
-    F -- "Sim (Menor de idade ou valor não positivo)" --> E
-    F -- "Não (Lead elegível)" --> G["Criação do dicionário estruturado (title, upper, lower)"]
-    G --> H["Adiciona na lista_clientes"]
-    E --> I["Impressão do resultado e métricas no terminal"]
+    A["Leads Brutos<br/>(Lista de Strings)"] --> B["Split por ';'<br/>e strip() nos campos"]
+    B --> C["Limpeza da Renda<br/>(replace R$, ponto e vírgula)"]
+    C --> D{"Coerção Numérica?<br/>(try / except)"}
+    D -- "ValueError" --> E["Incrementa descartados<br/>e pula (continue)"]
+    D -- "Sucesso" --> F{"Elegível?<br/>(idade >= 18 e renda > 0)"}
+    F -- "Não" --> E
+    F -- "Sim" --> G["Estrutura dicionário<br/>(title, upper, lower)"]
+    G --> H["Adiciona na<br/>lista_clientes"]
+    E --> I["Relatório Final<br/>no Terminal"]
     H --> I
 ```
 
@@ -53,17 +53,17 @@ Quantidade de leads descartados 5
 
 ```mermaid
 flowchart TD
-    A["Logs de Transações Brutos (8 eventos)"] --> B["Iteração por registro"]
-    B --> C["Gera tupla imutável de unicidade (cliente, valor, hora)"]
-    C --> D{"Chave já presente no conjunto set?"}
-    D -- "Sim (Transação Duplicada)" --> E["Incrementa transacoes_deduplicadas"]
-    D -- "Não (Transação Nova/Única)" --> F["Registra chave no set e inclui em transacoes_unicas"]
-    F --> G{"Filtro de Risco: valor > 10.000 e (hora >= 22 ou hora < 6)"}
-    G -- "Sim (Suspeita Noturna)" --> H["Registra alerta (cliente, valor, cidade)"]
-    G -- "Não (Transação Regular)" --> I["Prossegue para faturamento"]
+    A["Logs de Transações<br/>(8 eventos brutos)"] --> B["Iteração por evento"]
+    B --> C["Gera tupla de unicidade<br/>(cliente, valor, hora)"]
+    C --> D{"Chave já no set?"}
+    D -- "Sim (Duplicada)" --> E["Incrementa<br/>transacoes_deduplicadas"]
+    D -- "Não (Única)" --> F["Adiciona ao set e à<br/>lista de únicas"]
+    F --> G{"Alerta Noturno?<br/>(valor > 10k e hora noturna)"}
+    G -- "Sim (Risco)" --> H["Registra alerta<br/>(cliente, valor, cidade)"]
+    G -- "Não" --> I["Prossegue para faturamento"]
     H --> I
-    I --> J["Acumula volume financeiro da cidade no dicionário somatorio"]
-    E --> K["Relatório de Reconciliação e Alertas no Terminal"]
+    I --> J["Acumula faturamento<br/>por cidade no somatorio"]
+    E --> K["Relatório Final<br/>no Terminal"]
     J --> K
 ```
 
@@ -82,13 +82,13 @@ Faturamento total consolidado por cidade:
 
 ```mermaid
 flowchart TD
-    A["Vetores Brutos: precos_reais e precos_previstos"] --> B["Iteração pareada com zip(reais, previstos)"]
-    B --> C{"Coerção Numérica para float (try / except)"}
-    C -- "Dado Corrompido / Texto / Nulo" --> D["Descarta o par com falha (continue)"]
-    C -- "Conversão Válida em Ambos" --> E["Acumula nas listas alinhadas (l1 e l2)"]
-    E --> F["calcular_mae: Soma abs(l1 - l2) e rastreia maior resíduo"]
-    E --> G["calcular_rmse: Soma (l1 - l2)^2 e extrai raiz quadrada"]
-    F --> H["Exibição do Relatório de Avaliação e Pior Caso no Terminal"]
+    A["Vetores Brutos:<br/>Reais e Previstos"] --> B["Iteração pareada com<br/>zip(reais, previstos)"]
+    B --> C{"Coerção Numérica?<br/>(try / except)"}
+    C -- "Dado Corrompido" --> D["Descarta par<br/>incompleto (continue)"]
+    C -- "Conversão Válida" --> E["Armazena em listas<br/>alinhadas (l1 e l2)"]
+    E --> F["calcular_mae:<br/>Média de abs(y - ŷ)<br/>e pior resíduo"]
+    E --> G["calcular_rmse:<br/>Raiz da média<br/>de (y - ŷ)²"]
+    F --> H["Relatório de Métricas<br/>no Terminal"]
     G --> H
 ```
 
@@ -111,18 +111,18 @@ Diferença: 8000.0
 
 ```mermaid
 flowchart TD
-    A["Stream Bruto de Logs do Servidor (10 linhas)"] --> B["Split por delimitador '|' e strip() dos campos"]
-    B --> C{"Validação de Estrutura & Coerção (try/except)"}
-    C -- "Linha Corrompida (ValueError/TypeError)" --> D["Incrementa nao_carregados e ignora"]
-    C -- "Estrutura Válida (5 campos)" --> E["Estrutura registro: TimeStamp, ip, Metodo_Rota, Status_Code, Tempo[MS]"]
-    E --> F["Distribuição de Códigos HTTP no dicionário lista_valores"]
-    E --> G{"Filtro de Performance: Status_Code == 200"}
-    G -- "Sim" --> H["Acumula tempo e calcula média de latência (ms)"]
-    E --> I{"Filtro de Segurança: Status_Code == 401"}
-    I -- "Sim" --> J["Contabiliza falhas por IP no dicionário dic_alerta"]
-    J --> K{"Falhas por IP >= 3?"}
-    K -- "Sim" --> L["Gera Alerta Crítico e bloqueio do IP agressor"]
-    D --> M["Relatório Consolidado de Segurança e Performance no Terminal"]
+    A["Stream de Logs<br/>(10 requisições)"] --> B["Split por '|'<br/>e strip() dos campos"]
+    B --> C{"Estrutura Válida?<br/>(try / except)"}
+    C -- "Linha Corrompida" --> D["Contabiliza erro<br/>e pula registro"]
+    C -- "Válida (5 campos)" --> E["Estrutura dicionário:<br/>IP, Rota, Status, Tempo"]
+    E --> F["Distribuição de códigos<br/>HTTP no lista_valores"]
+    E --> G{"Status == 200?"}
+    G -- "Sim" --> H["Acumula latência e<br/>calcula média (ms)"]
+    E --> I{"Status == 401?"}
+    I -- "Sim" --> J["Contabiliza falhas<br/>por IP no dic_alerta"]
+    J --> K{"Falhas >= 3?"}
+    K -- "Sim" --> L["Alerta de Força Bruta<br/>e bloqueio do IP"]
+    D --> M["Relatório de Segurança<br/>e Performance"]
     F --> M
     H --> M
     L --> M
